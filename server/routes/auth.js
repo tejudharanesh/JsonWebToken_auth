@@ -5,32 +5,53 @@ const User = require("../models/User");
 
 const router = express.Router();
 
-// Register
+// Register Route
 router.post("/register", async (req, res) => {
   const { username, password } = req.body;
 
-  // Check if user exists
-  const userExists = await User.findOne({ username });
-  if (userExists) return res.status(400).send("User already exists");
+  try {
+    // Check if user already exists
+    const userExists = await User.findOne({ username });
+    if (userExists) return res.status(400).send("User already exists");
 
-  const user = new User({ username, password });
-  await user.save();
+    // Create new user with hashed password
+    const newUser = new User({ username, password });
+    await newUser.save();
 
-  res.send("User registered");
+    res.status(201).send("User registered successfully");
+  } catch (err) {
+    res.status(500).send("Server error");
+  }
 });
 
-// Login
+// Login Route
 router.post("/login", async (req, res) => {
   const { username, password } = req.body;
 
-  const user = await User.findOne({ username });
-  if (!user) return res.status(400).send("Invalid credentials");
+  try {
+    // Find user by username
+    const user = await User.findOne({ username });
+    if (!user) return res.status(400).send("Invalid credentials");
 
-  const validPassword = await bcrypt.compare(password, user.password);
-  if (!validPassword) return res.status(400).send("Invalid credentials");
+    // Check password validity
+    const validPassword = await bcrypt.compare(password, user.password);
+    if (!validPassword) return res.status(400).send("Invalid credentials");
 
-  const token = jwt.sign({ _id: user._id }, "teju123");
-  res.header("auth-token", token).send(token);
+    // Generate JWT token
+    const token = jwt.sign({ _id: user._id }, "teju123", { expiresIn: "1h" });
+
+    // Set the token in a secure, HTTP-only cookie
+    res.cookie("token", token, {
+      httpOnly: true, // Cannot be accessed via JavaScript
+      secure: process.env.NODE_ENV === "production", // Only send over HTTPS in production
+      sameSite: "Strict", // Prevent CSRF attacks
+      maxAge: 3600000, // 1 hour in milliseconds
+    });
+
+    res.status(200).send("Login successful");
+  } catch (err) {
+    res.status(500).send("Server error");
+  }
 });
 
 module.exports = router;
