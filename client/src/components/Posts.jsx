@@ -6,11 +6,15 @@ function Posts() {
 
   useEffect(() => {
     const fetchPosts = async () => {
-      const token = localStorage.getItem("token");
-      const response = await axios.get("http://localhost:5000/api/posts", {
-        headers: { "auth-token": token },
-      });
-      setPosts(response.data);
+      try {
+        // Make the request with credentials (cookies) automatically included
+        const response = await axios.get("http://localhost:5000/api/posts", {
+          withCredentials: true,
+        });
+        setPosts(response.data);
+      } catch (error) {
+        console.error("Error fetching posts:", error.response || error.message);
+      }
     };
 
     fetchPosts();

@@ -22,7 +22,7 @@ function Login() {
         }
       );
 
-      if (response.status === 200) {
+      if (response) {
         toast.success("Login successful!");
 
         // No need to store token in localStorage since it's stored in an HTTP-only cookie
@@ -60,7 +60,6 @@ function Login() {
         />
         <button type="submit">Login</button>
       </form>
-      <ToastContainer />
     </div>
   );
 }

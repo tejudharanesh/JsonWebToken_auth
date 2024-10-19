@@ -22,7 +22,7 @@ function Register() {
         }
       );
 
-      if (response.status === 200) {
+      if (response) {
         toast.success("Registration successful!");
         // Optionally navigate to login or another page
         navigate("/login");
